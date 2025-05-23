@@ -4,7 +4,10 @@ import dotenv from "dotenv";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
+import path from "path";
+
 import authRoutes from "./routes/auth";
+import listingRoutes from "./routes/listing";
 import { MONGO_URI, PORT } from "./util/config";
 
 const app = express();
@@ -18,9 +21,11 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use(authRoutes);
+app.use(listingRoutes);
 
 // Connect DB and Start Server
 mongoose
