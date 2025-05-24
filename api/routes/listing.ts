@@ -147,4 +147,58 @@ router.get("/listings/:id", async (req: Request, res: Response) => {
   res.json(listingDoc);
 });
 
+router.get("/my-listings", verifyToken, async (req: Request, res: Response) => {
+  const typedReq = req as RequestWithUser;
+
+  try {
+    const userId = typedReq.user.id;
+    const myListings = await Listing.find({ owner: userId }).sort({
+      createdAt: -1,
+    });
+    res.json(myListings);
+  } catch (err) {
+    console.error("Error fetching user's listings:", err);
+    res.status(500).json({ message: "Failed to fetch user's listings" });
+  }
+});
+
+router.delete(
+  "/listings/:id",
+  verifyToken,
+  async (req: Request, res: Response) => {
+    const typedReq = req as RequestWithUser;
+    const { id } = req.params;
+
+    try {
+      const listing = await Listing.findById(id);
+
+      if (!listing) {
+        res.status(404).json({ message: "Listing not found" });
+        return;
+      }
+
+      if (listing.owner.toString() !== typedReq.user.id) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+
+      if (Array.isArray(listing.images)) {
+        listing.images.forEach((path) => {
+          try {
+            fs.unlinkSync(path);
+          } catch (err) {
+            console.warn("Failed to delete image file:", path, err);
+          }
+        });
+      }
+      await listing.deleteOne();
+
+      res.json({ message: "Listing deleted successfully" });
+    } catch (err) {
+      console.error("Error deleting listing:", err);
+      res.status(500).json({ message: "Failed to delete listing" });
+    }
+  }
+);
+
 export default router;

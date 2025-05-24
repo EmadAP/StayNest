@@ -20,6 +20,7 @@ interface LoginRequest {
 
 interface JwtPayload {
   username: string;
+  email: string;
   id: string;
 }
 
@@ -75,19 +76,35 @@ router.post(
   }
 );
 
-router.get("/profile", (req: Request, res: Response) => {
+router.get("/profile", async (req: Request, res: Response) => {
   const token = req.cookies?.token;
   if (!token) {
     res.status(401).json({ message: "Unauthorized: No token" });
     return;
   }
-  jwt.verify(token, SECRET, {}, (err, decoded) => {
+  jwt.verify(token, SECRET, {}, async (err, decoded) => {
     if (err || !decoded) {
       res.status(401).json({ message: "Unauthorized: Invalid token" });
       return;
     }
-    const userInfo = decoded as JwtPayload;
-    return res.status(200).json(userInfo);
+
+    const { id } = decoded as JwtPayload;
+
+    try {
+      const user = await User.findById(id).select("username email _id");
+      if (!user) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+      res.status(200).json({
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      });
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+      res.status(500).json({ message: "Server error" });
+    }
   });
 });
 

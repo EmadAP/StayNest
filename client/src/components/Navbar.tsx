@@ -71,24 +71,30 @@ function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-32 bg-gray-50 px-2.5 py-3.5 rounded-xl border-2 border-green-500 z-50">
                 <DropdownMenuLabel className="border-b-2 mb-1.5 font-semibold text-lg">
-                  Profile
+                  Account
                 </DropdownMenuLabel>
 
                 <DropdownMenuGroup>
                   {user?.username && (
                     <>
                       <DropdownMenuItem>{user.username}</DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleLogout}>
+                      <DropdownMenuItem className="cursor-pointer">
+                        <Link href="/profile">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="cursor-pointer"
+                      >
                         Logout
                       </DropdownMenuItem>
                     </>
                   )}
                   {!user?.username && (
                     <>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer">
                         <Link href="/signup">SignUp</Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer">
                         <Link href="/login">Login</Link>
                       </DropdownMenuItem>
                     </>

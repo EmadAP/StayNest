@@ -3,31 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { format } from "date-fns";
-
-interface Listing {
-  _id: string;
-  title: string;
-  description: string;
-  pricePerNight: number;
-  availableFrom: string;
-  availableTo: string;
-  location: string;
-  coordinates: [number, number];
-  amenities: string[];
-  maxGuests: number;
-  houseRules: string;
-  images: string[];
-  owner: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-}
+import { Listing } from "@/lib/type";
 
 type Props = Pick<
   Listing,
   "_id" | "title" | "images" | "pricePerNight" | "availableFrom" | "availableTo"
->;
+> & { fromProfile?: boolean };
 
 function NestCard({
   _id,
@@ -36,6 +17,7 @@ function NestCard({
   pricePerNight,
   availableFrom,
   availableTo,
+  fromProfile,
 }: Props) {
   const imageUrl = Array.isArray(images) && images.length > 0 ? images[0] : "";
   const normalizedImageUrl = imageUrl.startsWith("/")
@@ -47,7 +29,7 @@ function NestCard({
 
   return (
     <div className="pt-2 flex flex-col overflow-hidden">
-      <Link href={`/listings/${_id}`}>
+      <Link href={`/listings/${_id}${fromProfile ? "?from=profile" : ""}`}>
         <div className=" relative h-64 w-full">
           <Image
             src={fullImageUrl}

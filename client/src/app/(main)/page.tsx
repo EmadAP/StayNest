@@ -4,26 +4,7 @@ import Loading from "@/components/Loading";
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
 import NestCard from "@/components/NestCard";
 import { useQuery } from "@tanstack/react-query";
-
-interface Listing {
-  _id: string;
-  title: string;
-  description: string;
-  pricePerNight: number;
-  availableFrom: string;
-  availableTo: string;
-  location: string;
-  coordinates: [number, number];
-  amenities: string[];
-  maxGuests: number;
-  houseRules: string;
-  images: string[];
-  owner: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-}
+import { Listing } from "@/lib/type";
 
 async function fetchListing(): Promise<Listing[]> {
   const res = await fetch("http://localhost:5000/listings");

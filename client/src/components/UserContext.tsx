@@ -1,18 +1,7 @@
 "use client";
 import { createContext, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
-
-interface User {
-  id: string;
-  username: string;
-}
-
-interface UserContextType {
-  user: User | null;
-  isLoading: boolean;
-  error: Error | null;
-  refetch: () => void;
-}
+import { User, UserContextType } from "@/lib/type";
 
 const UserContext = createContext<UserContextType>({
   user: null,

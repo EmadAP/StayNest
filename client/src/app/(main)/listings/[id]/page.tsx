@@ -1,9 +1,9 @@
 "use client";
 
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import React from "react";
 import Loading from "@/components/Loading";
@@ -17,30 +17,13 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { Listing } from "@/lib/type";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { useUser } from "@/components/UserContext";
 const LocationViewer = dynamic(() => import("@/components/LocationViewer"), {
   ssr: false,
 });
-
-interface Listing {
-  _id: string;
-  title: string;
-  description: string;
-  pricePerNight: number;
-  availableFrom: string;
-  availableTo: string;
-  location: string;
-  coordinates: [number, number];
-  amenities: string[];
-  maxGuests: number;
-  houseRules: string;
-  images: string[];
-  owner: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-}
 
 async function fetchListingById(id: string): Promise<Listing> {
   const res = await fetch(`http://localhost:5000/listings/${id}`);
@@ -48,9 +31,22 @@ async function fetchListingById(id: string): Promise<Listing> {
   return res.json();
 }
 
+async function deleteListing(id: string) {
+  const res = await fetch(`http://localhost:5000/listings/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Failed to delete listing");
+}
+
 function Page() {
   const params = useParams();
   const id = params.id as string;
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const { user } = useUser();
+  const searchParams = useSearchParams();
+  const fromProfile = searchParams.get("from") === "profile";
 
   const {
     data: listing,
@@ -63,15 +59,31 @@ function Page() {
     enabled: !!id,
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteListing,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myListings"] });
+      router.push("/");
+    },
+  });
+
   if (isLoading || !listing) return <Loading />;
   if (isError) return <div>Error: {error.message}</div>;
 
   return (
     <div>
       <MaxWidthWrapper className="pt-6">
-        <h1 className="border-b-2 border-b-green-500 pb-2 mb-4 text-2xl font-bold capitalize">
-          {listing.title}
-        </h1>
+        <div className="flex justify-between border-b-2 border-b-green-500 pb-2 mb-4 ">
+          <h1 className="text-2xl font-bold capitalize">{listing.title}</h1>
+          {fromProfile && user?.id === listing.owner && (
+            <Button
+              className={buttonVariants({ size: "sm", variant: "destructive" })}
+              onClick={() => deleteMutation.mutate(listing._id)}
+            >
+              Delete
+            </Button>
+          )}
+        </div>
         <div className="flex flex-col-reverse md:flex-row md:gap-6">
           <div className="space-y-6 md:flex-1/2">
             <p className=" text-sm text-zinc-700">{listing.description}</p>
