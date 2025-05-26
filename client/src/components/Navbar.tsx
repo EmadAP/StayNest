@@ -12,28 +12,15 @@ import {
 } from "@radix-ui/react-dropdown-menu";
 import { DropdownMenuGroup, DropdownMenuItem } from "./ui/dropdown-menu";
 import { useUser } from "./UserContext";
-import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
+import { LogoutUser } from "@/lib/mutations";
 
 function Navbar() {
   const { user } = useUser();
-  const queryClient = useQueryClient();
+  const { mutate: logout } = LogoutUser();
 
-  const handleLogout = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ["profile"] });
-      } else {
-        console.error("Logout failed");
-      }
-    } catch (error) {
-      console.error("An error occurred during logout:", error);
-    }
+  const handleLogout = () => {
+    logout();
   };
 
   return (

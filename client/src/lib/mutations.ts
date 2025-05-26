@@ -108,3 +108,25 @@ export const LoginUser = () => {
     },
   });
 };
+
+const logoutUser = async () => {
+  const res = await fetch("http://localhost:5000/logout", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error("Logout failed");
+  }
+};
+
+export const LogoutUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: logoutUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+};
