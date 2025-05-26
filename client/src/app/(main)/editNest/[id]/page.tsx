@@ -7,32 +7,13 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import Loading from "@/components/Loading";
 import { X } from "lucide-react";
-import { useListing } from "@/lib/queries";
+import { GetListingById } from "@/lib/queries";
+import { UpdateListingById } from "@/lib/mutations";
 const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
   ssr: false,
 });
-
-const updateListing = async ({
-  id,
-  formData,
-}: {
-  id: string;
-  formData: FormData;
-}) => {
-  const res = await fetch(`http://localhost:5000/listings/${id}`, {
-    method: "PUT",
-    body: formData,
-    credentials: "include",
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || "Failed to update listing");
-  }
-  return res.json();
-};
 
 function Page() {
   const router = useRouter();
@@ -46,16 +27,8 @@ function Page() {
   const [availableFrom, setAvailableFrom] = useState<Date>();
   const [availableTo, setAvailableTo] = useState<Date>();
   const [removedImages, setRemovedImages] = useState<string[]>([]);
-
-  const { data: listing, isLoading } = useListing(id);
-
-  const mutation = useMutation({
-    mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
-      updateListing({ id, formData }),
-    onSuccess: () => {
-      router.push("/profile");
-    },
-  });
+  const { data: listing, isLoading } = GetListingById(id);
+  const updateMutation = UpdateListingById();
 
   useEffect(() => {
     if (!listing || !formRef.current) return;
@@ -110,7 +83,14 @@ function Page() {
       formData.append("removedImages", JSON.stringify(removedImages));
     });
 
-    mutation.mutate({ id, formData });
+    updateMutation.mutate(
+      { id, formData },
+      {
+        onSuccess: (data) => {
+          router.push(`/nests/${data._id}`);
+        },
+      }
+    );
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -265,7 +245,7 @@ function Page() {
             </div>
           )}
           <Button type="submit" className="text-xl font-semibold ">
-            {mutation.isPending ? "Saving..." : "Save Changes"}
+            {updateMutation.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </form>
       </MaxWidthWrapper>

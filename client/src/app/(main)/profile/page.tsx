@@ -3,18 +3,9 @@ import Loading from "@/components/Loading";
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
 import NestCard from "@/components/NestCard";
 import { useUser } from "@/components/UserContext";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
-import { Listing } from "@/lib/type";
-
-async function fetchingMyListings(): Promise<Listing[]> {
-  const res = await fetch("http://localhost:5000/my-listings", {
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("Failed to delete listing");
-  return res.json();
-}
+import { GetMyListings } from "@/lib/queries";
 
 function Page() {
   const { user } = useUser();
@@ -26,16 +17,7 @@ function Page() {
     }
   }, [user, router]);
 
-  const {
-    data: listings,
-    isLoading,
-    isError,
-    error,
-  } = useQuery<Listing[]>({
-    queryKey: ["myListings"],
-    queryFn: fetchingMyListings,
-    enabled: !!user,
-  });
+  const { data: listings, isLoading, isError, error } = GetMyListings();
 
   if (!user || isLoading || !listings) return <Loading />;
   if (isError) return <div>Error: {error.message}</div>;

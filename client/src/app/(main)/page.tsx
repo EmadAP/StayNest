@@ -3,25 +3,10 @@ import React from "react";
 import Loading from "@/components/Loading";
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
 import NestCard from "@/components/NestCard";
-import { useQuery } from "@tanstack/react-query";
-import { Listing } from "@/lib/type";
-
-async function fetchListing(): Promise<Listing[]> {
-  const res = await fetch("http://localhost:5000/listings");
-  if (!res.ok) throw new Error("Network response was not ok");
-  return res.json();
-}
+import { GetAllListings } from "@/lib/queries";
 
 export default function Home() {
-  const {
-    data: listings,
-    isLoading,
-    isError,
-    error,
-  } = useQuery<Listing[], Error>({
-    queryKey: ["listings"],
-    queryFn: fetchListing,
-  });
+  const { data: listings, isLoading, isError, error } = GetAllListings();
 
   if (isLoading || !listings) return <Loading />;
   if (isError) return <div>Error: {error.message}</div>;

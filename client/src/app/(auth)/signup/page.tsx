@@ -1,31 +1,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-
-type SignupData = {
-  username: string;
-  email: string;
-  password: string;
-};
-
-const signupUser = async (userData: SignupData) => {
-  const res = await fetch("http://localhost:5000/signup", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(userData),
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || "Signup failed");
-  }
-
-  return res.json();
-};
+import { SignupData } from "@/lib/type";
+import { SignupUser } from "@/lib/mutations";
 
 function Page() {
   const router = useRouter();
@@ -36,17 +14,7 @@ function Page() {
     password: "",
   });
 
-  const {
-    mutate: signup,
-    isPending,
-    error,
-    isSuccess,
-  } = useMutation({
-    mutationFn: signupUser,
-    onSuccess: () => {
-      router.push("/login");
-    },
-  });
+  const { mutate: signup, isPending, error, isSuccess } = SignupUser();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -54,7 +22,11 @@ function Page() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    signup(formData);
+    signup(formData, {
+      onSuccess: () => {
+        router.push("/login");
+      },
+    });
   };
 
   return (

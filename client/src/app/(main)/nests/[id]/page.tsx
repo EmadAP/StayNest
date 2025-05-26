@@ -1,7 +1,7 @@
 "use client";
 
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -22,18 +22,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@/components/UserContext";
 import { Trash, UserPen } from "lucide-react";
 import Link from "next/link";
-import { useListing } from "@/lib/queries";
+import { GetListingById } from "@/lib/queries";
+import { DeleteListingById } from "@/lib/mutations";
 const LocationViewer = dynamic(() => import("@/components/LocationViewer"), {
   ssr: false,
 });
-
-async function deleteListing(id: string) {
-  const res = await fetch(`http://localhost:5000/listings/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("Failed to delete listing");
-}
 
 function Page() {
   const params = useParams();
@@ -43,16 +36,17 @@ function Page() {
   const { user } = useUser();
   const searchParams = useSearchParams();
   const fromProfile = searchParams.get("from") === "profile";
+  const { data: listing, isLoading, isError, error } = GetListingById(id);
+  const deleteMutation = DeleteListingById();
 
-  const { data: listing, isLoading, isError, error } = useListing(id);
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteListing,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["myListings"] });
-      router.push("/profile");
-    },
-  });
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["myListings"] });
+        router.push("/profile");
+      },
+    });
+  };
 
   if (isLoading || !listing) return <Loading />;
   if (isError) return <div>Error: {error.message}</div>;
@@ -73,7 +67,7 @@ function Page() {
             {fromProfile && user?.id === listing.owner && (
               <button
                 className="bg-destructive  shadow-xs hover:bg-destructive/80  rounded-full p-0 w-9 h-9"
-                onClick={() => deleteMutation.mutate(listing._id)}
+                onClick={() => handleDelete(listing._id)}
               >
                 <Trash className="h-5 w-5 mx-auto text-white" />
               </button>

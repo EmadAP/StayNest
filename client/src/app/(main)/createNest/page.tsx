@@ -2,7 +2,6 @@
 
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useRef, useState } from "react";
@@ -13,19 +12,7 @@ const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
 import DateSetter from "@/components/DateSetter";
 import SetAmenities from "@/components/SetAmenities";
 import { X } from "lucide-react";
-
-const createListing = async (formData: FormData) => {
-  const res = await fetch("http://localhost:5000/listings", {
-    method: "POST",
-    body: formData,
-    credentials: "include",
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || "Failed to create listing");
-  }
-  return res.json();
-};
+import { CreateListings } from "@/lib/mutations";
 
 function Page() {
   const router = useRouter();
@@ -37,14 +24,7 @@ function Page() {
     new Date()
   );
   const [availableTo, setAvailableTo] = useState<Date | undefined>(undefined);
-
-  const mutation = useMutation({
-    mutationFn: (formData: FormData) => createListing(formData),
-    onSuccess: (data) => {
-      console.log("Listing created:", data);
-      router.push("/");
-    },
-  });
+  const createMutation = CreateListings();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +38,12 @@ function Page() {
       formData.append("files", file);
     });
 
-    mutation.mutate(formData);
+    createMutation.mutate(formData, {
+      onSuccess: (data) => {
+        console.log("Listing created:", data);
+        router.push("/");
+      },
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,7 +182,7 @@ function Page() {
             </div>
           )}
           <Button type="submit" className="text-xl font-semibold ">
-            {mutation.isPending ? "Submitting..." : "Create your Nest"}
+            {createMutation.isPending ? "Submitting..." : "Create your Nest"}
           </Button>
         </form>
       </MaxWidthWrapper>
