@@ -10,6 +10,10 @@ import {
   Wifi,
 } from "lucide-react";
 
+type SetAmenitiesProps = {
+  defaultAmenities?: string[];
+};
+
 const amenityOptions = [
   { id: "amenity_wifi", label: "Wi-Fi", icon: <Wifi /> },
   {
@@ -27,7 +31,7 @@ const amenityOptions = [
   { id: "amenity_heating", label: "Heating", icon: <Heater /> },
 ] as const;
 
-const SetAmenities = () => {
+const SetAmenities = ({ defaultAmenities = [] }: SetAmenitiesProps) => {
   return (
     <div className="pt-2 md:pt-0">
       <label className="text-lg font-semibold">Amenities :</label>
@@ -42,6 +46,7 @@ const SetAmenities = () => {
               name="amenities[]"
               value={item.id}
               className="accent-green-600"
+              defaultChecked={defaultAmenities.includes(item.id)}
             />
             <span className="text-base">{item.label}</span>
             {item.icon}

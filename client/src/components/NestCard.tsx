@@ -29,7 +29,7 @@ function NestCard({
 
   return (
     <div className="pt-2 flex flex-col overflow-hidden">
-      <Link href={`/listings/${_id}${fromProfile ? "?from=profile" : ""}`}>
+      <Link href={`/nests/${_id}${fromProfile ? "?from=profile" : ""}`}>
         <div className=" relative h-64 w-full">
           <Image
             src={fullImageUrl}

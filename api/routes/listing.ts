@@ -131,6 +131,114 @@ router.post(
   }
 );
 
+router.put(
+  "/listings/:id",
+  verifyToken,
+  upload.array("files", 10),
+  async (req: Request, res: Response) => {
+    const typedReq = req as RequestWithUser;
+    const { id } = req.params;
+
+    try {
+      const listing = await Listing.findById(id);
+
+      if (!listing) {
+        res.status(404).json({ message: "Listing not found" });
+        return;
+      }
+
+      if (listing.owner.toString() !== typedReq.user.id) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+
+      let existingImagesToKeep: string[] = [];
+
+      if (typedReq.body.existingImagesToKeep) {
+        existingImagesToKeep = Array.isArray(typedReq.body.existingImagesToKeep)
+          ? typedReq.body.existingImagesToKeep
+          : [typedReq.body.existingImagesToKeep];
+      }
+
+      const imagesToDelete = listing.images.filter(
+        (img) => !existingImagesToKeep.includes(img)
+      );
+
+      imagesToDelete.forEach((path) => {
+        try {
+          fs.unlinkSync(path);
+        } catch (err) {
+          console.warn("Failed to delete image file:", path, err);
+        }
+      });
+      const files = req.files as Express.Multer.File[];
+      const newImagePaths: string[] = [];
+
+      if (files && files.length > 0) {
+        files.forEach((file) => {
+          const parts = file.originalname.split(".");
+          const ext = parts[parts.length - 1];
+          const newPath = file.path + "." + ext;
+          fs.renameSync(file.path, newPath);
+          newImagePaths.push(newPath);
+        });
+      }
+
+      const savedPaths = [...existingImagesToKeep, ...newImagePaths];
+
+      const body = typedReq.body;
+
+      if (typeof body.coordinates === "string") {
+        try {
+          body.coordinates = JSON.parse(body.coordinates);
+        } catch (e) {
+          res.status(400).json({ message: "Invalid coordinates format" });
+          return;
+        }
+      }
+
+      const updatedData: Partial<ListingInput> = {
+        title: body.title,
+        description: body.description,
+        pricePerNight: body.pricePerNight
+          ? Number(body.pricePerNight)
+          : undefined,
+        availableFrom: body.availableFrom,
+        availableTo: body.availableTo,
+        location: body.location,
+        coordinates: body.coordinates,
+        amenities: Array.isArray(body.amenities)
+          ? body.amenities.map(String)
+          : typeof body.amenities === "string"
+          ? body.amenities.split(",").map((s: string) => s.trim())
+          : [],
+        maxGuests: body.maxGuests ? Number(body.maxGuests) : undefined,
+        houseRules: body.houseRules ? String(body.houseRules) : undefined,
+        isActive:
+          body.isActive !== undefined ? Boolean(body.isActive) : undefined,
+      };
+
+      Object.keys(updatedData).forEach((key) => {
+        if (updatedData[key as keyof ListingInput] === undefined) {
+          delete updatedData[key as keyof ListingInput];
+        }
+      });
+
+      const updatedListing = await Listing.findByIdAndUpdate(
+        id,
+
+        { ...updatedData, images: savedPaths },
+        { new: true }
+      );
+
+      res.json(updatedListing);
+    } catch (err) {
+      console.error("Error updating listing:", err);
+      res.status(500).json({ message: "Failed to update listing" });
+    }
+  }
+);
+
 router.get("/listings", async (req: Request, res: Response) => {
   try {
     const listings = await Listing.find().sort({ createdAt: -1 }).limit(20);

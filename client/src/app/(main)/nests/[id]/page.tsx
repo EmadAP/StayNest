@@ -1,7 +1,7 @@
 "use client";
 
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -17,19 +17,15 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Listing } from "@/lib/type";
+
 import { Card, CardContent } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
 import { useUser } from "@/components/UserContext";
+import { Trash, UserPen } from "lucide-react";
+import Link from "next/link";
+import { useListing } from "@/lib/queries";
 const LocationViewer = dynamic(() => import("@/components/LocationViewer"), {
   ssr: false,
 });
-
-async function fetchListingById(id: string): Promise<Listing> {
-  const res = await fetch(`http://localhost:5000/listings/${id}`);
-  if (!res.ok) throw new Error("Listing not found");
-  return res.json();
-}
 
 async function deleteListing(id: string) {
   const res = await fetch(`http://localhost:5000/listings/${id}`, {
@@ -48,22 +44,13 @@ function Page() {
   const searchParams = useSearchParams();
   const fromProfile = searchParams.get("from") === "profile";
 
-  const {
-    data: listing,
-    isLoading,
-    isError,
-    error,
-  } = useQuery<Listing, Error>({
-    queryKey: ["listing", id],
-    queryFn: () => fetchListingById(id),
-    enabled: !!id,
-  });
+  const { data: listing, isLoading, isError, error } = useListing(id);
 
   const deleteMutation = useMutation({
     mutationFn: deleteListing,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myListings"] });
-      router.push("/");
+      router.push("/profile");
     },
   });
 
@@ -73,19 +60,28 @@ function Page() {
   return (
     <div>
       <MaxWidthWrapper className="pt-6">
-        <div className="flex justify-between border-b-2 border-b-green-500 pb-2 mb-4 ">
+        <div className="flex items-center justify-between border-b-2 border-b-green-500 pb-2 mb-4 ">
           <h1 className="text-2xl font-bold capitalize">{listing.title}</h1>
-          {fromProfile && user?.id === listing.owner && (
-            <Button
-              className={buttonVariants({ size: "sm", variant: "destructive" })}
-              onClick={() => deleteMutation.mutate(listing._id)}
-            >
-              Delete
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {fromProfile && user?.id === listing.owner && (
+              <Link href={`/editNest/${listing._id}`}>
+                <button className="bg-primary  shadow-xs hover:bg-primary/80  rounded-full p-0 w-9 h-9">
+                  <UserPen className="h-5 w-5 mx-auto text-white" />
+                </button>
+              </Link>
+            )}
+            {fromProfile && user?.id === listing.owner && (
+              <button
+                className="bg-destructive  shadow-xs hover:bg-destructive/80  rounded-full p-0 w-9 h-9"
+                onClick={() => deleteMutation.mutate(listing._id)}
+              >
+                <Trash className="h-5 w-5 mx-auto text-white" />
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col-reverse md:flex-row md:gap-6">
-          <div className="space-y-6 md:flex-1/2">
+        <div className="pb-6 pt-2  flex flex-col-reverse md:flex-row md:gap-6">
+          <div className=" pt-4 space-y-6 md:flex-1/2">
             <p className=" text-sm text-zinc-700">{listing.description}</p>
             <div className="space-y-2">
               <div className="flex flex-col">

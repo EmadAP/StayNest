@@ -1,64 +1,116 @@
 "use client";
-
+import DateSetter from "@/components/DateSetter";
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
+import SetAmenities from "@/components/SetAmenities";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import React, { useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import Loading from "@/components/Loading";
+import { X } from "lucide-react";
+import { useListing } from "@/lib/queries";
 const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
   ssr: false,
 });
-import DateSetter from "@/components/DateSetter";
-import SetAmenities from "@/components/SetAmenities";
-import { X } from "lucide-react";
 
-const createListing = async (formData: FormData) => {
-  const res = await fetch("http://localhost:5000/listings", {
-    method: "POST",
+const updateListing = async ({
+  id,
+  formData,
+}: {
+  id: string;
+  formData: FormData;
+}) => {
+  const res = await fetch(`http://localhost:5000/listings/${id}`, {
+    method: "PUT",
     body: formData,
     credentials: "include",
   });
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.message || "Failed to create listing");
+    throw new Error(errorData.message || "Failed to update listing");
   }
   return res.json();
 };
 
 function Page() {
   const router = useRouter();
+  const { id } = useParams<{ id: string }>();
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<
+    { src: string; isNew: boolean }[]
+  >([]);
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
-  const [availableFrom, setAvailableFrom] = useState<Date | undefined>(
-    new Date()
-  );
-  const [availableTo, setAvailableTo] = useState<Date | undefined>(undefined);
+  const [availableFrom, setAvailableFrom] = useState<Date>();
+  const [availableTo, setAvailableTo] = useState<Date>();
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
+
+  const { data: listing, isLoading } = useListing(id);
 
   const mutation = useMutation({
-    mutationFn: (formData: FormData) => createListing(formData),
-    onSuccess: (data) => {
-      console.log("Listing created:", data);
-      router.push("/");
+    mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
+      updateListing({ id, formData }),
+    onSuccess: () => {
+      router.push("/profile");
     },
   });
+
+  useEffect(() => {
+    if (!listing || !formRef.current) return;
+
+    const form = formRef.current;
+
+    (form.elements.namedItem("title") as HTMLInputElement).value =
+      listing.title || "";
+    (form.elements.namedItem("description") as HTMLTextAreaElement).value =
+      listing.description || "";
+    (form.elements.namedItem("location") as HTMLInputElement).value =
+      listing.location || "";
+
+    (form.elements.namedItem("pricePerNight") as HTMLInputElement).value =
+      listing.pricePerNight?.toString() || "";
+    (form.elements.namedItem("maxGuests") as HTMLInputElement).value =
+      listing.maxGuests?.toString() || "";
+    (form.elements.namedItem("houseRules") as HTMLTextAreaElement).value =
+      listing.houseRules || "";
+
+    setCoordinates(listing.coordinates || null);
+    setAvailableFrom(new Date(listing.availableFrom));
+    setAvailableTo(new Date(listing.availableTo));
+
+    if (listing.images?.length) {
+      setImagePreviews(
+        listing.images.map((img: string) => ({
+          src: `http://localhost:5000/${img}`,
+          isNew: false,
+        }))
+      );
+    }
+  }, [listing]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formRef.current) return;
 
     const formData = new FormData(formRef.current);
+    formData.set("coordinates", JSON.stringify(coordinates));
+
+    const existingImagesToKeep = imagePreviews
+      .filter((img) => !img.isNew)
+      .map((img) => img.src.replace("http://localhost:5000/", ""));
+    existingImagesToKeep.forEach((path) =>
+      formData.append("existingImagesToKeep", path)
+    );
 
     formData.delete("files");
-
     selectedFiles.forEach((file) => {
       formData.append("files", file);
+      formData.append("removedImages", JSON.stringify(removedImages));
     });
 
-    mutation.mutate(formData);
+    mutation.mutate({ id, formData });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,26 +118,42 @@ function Page() {
     if (!files) return;
 
     const newFiles = Array.from(files);
+    setSelectedFiles((prev) => [...prev, ...newFiles]);
 
-    setSelectedFiles((prev) => {
-      const updatedFiles = [...prev, ...newFiles];
+    const previews = newFiles.map((file) => ({
+      src: URL.createObjectURL(file),
+      isNew: true,
+    }));
 
-      setImagePreviews(updatedFiles.map((file) => URL.createObjectURL(file)));
-      return updatedFiles;
-    });
+    setImagePreviews((prev) => [...prev, ...previews]);
     e.target.value = "";
   };
 
   const handleRemoveImage = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    const image = imagePreviews[index];
+
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+
+    if (!image.isNew) {
+      const originalPath = image.src.replace("http://localhost:5000/", "");
+      setRemovedImages((prev) => [...prev, originalPath]);
+    } else {
+      setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    }
   };
+
+  if (isLoading)
+    return (
+      <div className="text-center mt-10">
+        <Loading />
+      </div>
+    );
 
   return (
     <div className="">
       <MaxWidthWrapper className="pt-10">
         <h1 className="text-2xl font-bold">
-          Nest your <span className="text-green-600">House</span>
+          Edit your <span className="text-green-600">Nest</span>
         </h1>
         <form
           ref={formRef}
@@ -147,7 +215,7 @@ function Page() {
               />
             </div>
 
-            <SetAmenities />
+            <SetAmenities defaultAmenities={listing?.amenities || []} />
           </div>
           <textarea
             name="houseRules"
@@ -177,11 +245,11 @@ function Page() {
           {imagePreviews.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
               {imagePreviews.map((src, index) => (
-                <div key={src} className="flex items-start">
+                <div key={src.src} className="flex items-start">
                   <div className="relative w-full h-60">
                     <Image
                       fill
-                      src={src}
+                      src={src.src}
                       alt="image"
                       className="object-cover rounded-md"
                     />
@@ -197,7 +265,7 @@ function Page() {
             </div>
           )}
           <Button type="submit" className="text-xl font-semibold ">
-            {mutation.isPending ? "Submitting..." : "Create your Nest"}
+            {mutation.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </form>
       </MaxWidthWrapper>
