@@ -25,7 +25,7 @@ function Page() {
   return (
     <div>
       <MaxWidthWrapper className="py-4">
-        <h1 className="text-zinc-700 border-b-2 py-4 border-b-green-500  text-2xl font-semibold">
+        <h1 className="text-zinc-700 dark:text-white border-b-2 py-4 border-b-green-500  text-2xl font-semibold">
           My Profile
         </h1>
         {user && (
@@ -44,7 +44,7 @@ function Page() {
             </p> */}
           </div>
         )}
-        <h2 className="text-zinc-700 border-b-2 border-b-green-500 text-xl font-semibold pb-4 pt-4">
+        <h2 className="text-zinc-700 dark:text-white border-b-2 border-b-green-500 text-xl font-semibold pb-4 pt-4">
           My Nests
         </h2>
 

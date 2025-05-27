@@ -76,13 +76,15 @@ function Page() {
         </div>
         <div className="pb-6 pt-2  flex flex-col-reverse md:flex-row md:gap-6">
           <div className=" pt-4 space-y-6 md:flex-1/2">
-            <p className=" text-sm text-zinc-700">{listing.description}</p>
+            <p className=" text-sm text-zinc-700 dark:text-white">
+              {listing.description}
+            </p>
             <div className="space-y-2">
               <div className="flex flex-col">
-                <span className="font-semibold text-lg  text-zinc-900">
+                <span className="font-semibold text-lg  text-zinc-900 dark:text-white">
                   Location
                 </span>
-                <span className="text-zinc-700 text-sm mb-1">
+                <span className="text-zinc-700 dark:text-white text-sm mb-1">
                   {listing.location}
                 </span>
               </div>
@@ -93,45 +95,45 @@ function Page() {
             </div>
 
             <div className="flex flex-col">
-              <span className="font-semibold text-lg  text-zinc-900">
+              <span className="font-semibold text-lg  text-zinc-900 dark:text-white">
                 Available Dates
               </span>
-              <span className="text-zinc-700 text-sm mb-1 pb-1 border-b-1 border-b-green-500">
+              <span className="text-zinc-700 dark:text-white text-sm mb-1 pb-1 border-b-1 border-b-green-500">
                 {format(new Date(listing.availableFrom), "MMM d, yyyy")} –{" "}
                 {format(new Date(listing.availableTo), "MMM d, yyyy")}
               </span>
             </div>
 
             <div className="flex flex-col">
-              <span className="font-semibold text-lg  text-zinc-900">
+              <span className="font-semibold text-lg  text-zinc-900 dark:text-white">
                 Price Per Night
               </span>
-              <span className="text-zinc-700 text-sm mb-1 pb-1 border-b-1 border-b-green-500">
+              <span className="text-zinc-700 dark:text-white text-sm mb-1 pb-1 border-b-1 border-b-green-500">
                 ${listing.pricePerNight}
               </span>
             </div>
 
             <div className="flex flex-col">
-              <span className="font-semibold text-lg  text-zinc-900">
+              <span className="font-semibold text-lg  text-zinc-900 dark:text-white">
                 Max Guests
               </span>
-              <span className="text-zinc-700 text-sm mb-1 pb-1 border-b-1 border-b-green-500">
+              <span className="text-zinc-700 dark:text-white text-sm mb-1 pb-1 border-b-1 border-b-green-500">
                 {listing.maxGuests}
               </span>
             </div>
 
             <div className="flex flex-col">
-              <span className="font-semibold text-lg text-zinc-900 mb-1">
+              <span className="font-semibold text-lg text-zinc-900 dark:text-white mb-1">
                 Amenities
               </span>
               <AmenityDisplay listingAmenities={listing.amenities} />
             </div>
 
             <div className="flex flex-col">
-              <span className="font-semibold text-lg  text-zinc-900">
+              <span className="font-semibold text-lg  text-zinc-900 dark:text-white">
                 House Rules
               </span>
-              <span className="text-zinc-700 text-sm mb-1 pb-1 border-b-1 border-b-green-500">
+              <span className="text-zinc-700 dark:text-white text-sm mb-1 pb-1 border-b-1 border-b-green-500">
                 {listing.houseRules}
               </span>
             </div>

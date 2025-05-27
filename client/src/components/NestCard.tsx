@@ -28,7 +28,7 @@ function NestCard({
     : "/placeholder.jpg";
 
   return (
-    <div className="pt-2 flex flex-col overflow-hidden">
+    <div className="pt-2 flex flex-col overflow-hidden ">
       <Link href={`/nests/${_id}${fromProfile ? "?from=profile" : ""}`}>
         <div className=" relative h-64 w-full">
           <Image
@@ -40,18 +40,20 @@ function NestCard({
           />
         </div>
         <div>
-          <h3 className="text-lg text-zinc-800">{title}</h3>
-          <p className="text-sm text-zinc-500">
+          <h3 className="text-lg text-zinc-800 dark:text-white capitalize">
+            {title}
+          </h3>
+          <p className="text-sm text-zinc-500 dark:text-white/60">
             {format(new Date(availableFrom), "MMM d, yyyy")} to{" "}
             {format(new Date(availableTo), "MMM d, yyyy")}
           </p>
           <div className="flex flex-row  justify-between">
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-zinc-500 dark:text-white/60">
               $ {pricePerNight} for 1 night
             </p>
             <div className="flex items-center gap-1.5">
               <Star className="h-4 w-4 text-green-600 fill-green-600" />
-              <p className="text-sm text-zinc-500">5.0</p>
+              <p className="text-sm text-zinc-500 dark:text-white/60">5.0</p>
             </div>
           </div>
         </div>

@@ -32,7 +32,7 @@ function Page() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col w-xl min-h-1/2 p-7 rounded-xl border-2 border-gray-300 "
+      className="flex flex-col w-xl min-h-1/2 p-7 rounded-xl border-2 border-gray-300 dark:border-gray-700 "
     >
       <div className="pb-6">
         <h1 className="text-3xl font-bold pb-1.5 text-green-500">Register</h1>
@@ -48,7 +48,7 @@ function Page() {
           placeholder="Enter Username"
           value={formData.username}
           onChange={handleChange}
-          className="w-full bg-gray-200 rounded-sm text-sm px-3.5 py-2 outline-none"
+          className="w-full bg-gray-200 dark:bg-gray-800 rounded-sm text-sm px-3.5 py-2 outline-none"
         />
         <h3 className=" text-lg py-2">EMAIL</h3>
         <input
@@ -57,7 +57,7 @@ function Page() {
           placeholder="Enter Email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full bg-gray-200 rounded-sm text-sm px-3.5 py-2 outline-none"
+          className="w-full bg-gray-200 dark:bg-gray-800 rounded-sm text-sm px-3.5 py-2 outline-none"
         />
         <h3 className=" text-lg py-2">PASSWORD</h3>
         <input
@@ -66,10 +66,10 @@ function Page() {
           placeholder="Enter Password"
           value={formData.password}
           onChange={handleChange}
-          className="w-full bg-gray-200 rounded-sm text-sm px-3.5 py-2 outline-none"
+          className="w-full bg-gray-200 dark:bg-gray-800 rounded-sm text-sm px-3.5 py-2 outline-none"
         />
       </div>
-      <Button className="text-lg">
+      <Button className="text-lg text-white dark:text-white">
         {isPending ? "Signing up..." : "Sign Up"}
       </Button>
       {error && <p className="text-red-500">{(error as Error).message}</p>}

@@ -138,18 +138,18 @@ function Page() {
         <form
           ref={formRef}
           onSubmit={handleSubmit}
-          className="flex flex-col space-y-5 mt-10 py-8 bg-gray-100 rounded-lg px-5 lg:px-15 lg:py-15"
+          className="flex flex-col space-y-5 mt-10 py-8 bg-gray-100 dark:bg-gray-900 rounded-lg px-5 lg:px-15 lg:py-15"
         >
           <input
             name="title"
             placeholder="Title"
-            className="bg-white border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
+            className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
             required
           />
           <textarea
             name="description"
             placeholder="Description"
-            className="bg-white border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
+            className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
             required
           />
           <LocationPicker onLocationSelect={setCoordinates} />
@@ -162,7 +162,7 @@ function Page() {
             name="location"
             placeholder="Location"
             required
-            className="bg-white border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
+            className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
           />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-8 ">
             <div className="flex justify-between gap-6 flex-col ">
@@ -174,7 +174,7 @@ function Page() {
                   name="pricePerNight"
                   type="number"
                   placeholder="$"
-                  className="w-[200px] bg-white border-1 border-green-600 px-2 py-1.5 outline-none rounded-lg "
+                  className="w-[200px] bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-1.5 outline-none rounded-lg "
                   required
                 />
               </div>
@@ -184,7 +184,7 @@ function Page() {
                   name="maxGuests"
                   type="number"
                   placeholder="Guests"
-                  className="w-[200px] bg-white border-1 border-green-600 px-2 py-1.5 outline-none rounded-lg "
+                  className="w-[200px] bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-1.5 outline-none rounded-lg "
                 />
               </div>
               <DateSetter
@@ -200,7 +200,7 @@ function Page() {
           <textarea
             name="houseRules"
             placeholder="House Rules"
-            className="bg-white border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
+            className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
           />
 
           {/* MULTI IMAGE UPLOAD */}
@@ -216,7 +216,7 @@ function Page() {
 
           <label
             htmlFor="file-upload"
-            className="text-center font-semibold hover:bg-muted bg-white border px-2 py-2 rounded-lg cursor-pointer"
+            className="text-center font-semibold hover:bg-muted bg-white dark:bg-gray-800 border px-2 py-2 rounded-lg cursor-pointer"
           >
             Upload Images
           </label>
@@ -236,7 +236,7 @@ function Page() {
                   </div>
                   <button
                     onClick={() => handleRemoveImage(index)}
-                    className="hover:bg-zinc-200 rounded-full z-10 mx-1 my-2 p-1 w-fit cursor-pointer"
+                    className="hover:bg-zinc-200 dark:hover:bg-zinc-600 rounded-full z-10 mx-1 my-2 p-1 w-fit cursor-pointer"
                   >
                     <X size={17} />
                   </button>
@@ -244,7 +244,10 @@ function Page() {
               ))}
             </div>
           )}
-          <Button type="submit" className="text-xl font-semibold ">
+          <Button
+            type="submit"
+            className="text-xl font-semibold text-white dark:text-white "
+          >
             {updateMutation.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </form>
