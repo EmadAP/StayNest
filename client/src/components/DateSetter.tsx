@@ -3,10 +3,11 @@
 import React from "react";
 import { Button } from "./ui/button";
 import { CalendarIcon } from "lucide-react";
-import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 type Props = {
   availableFrom: Date | undefined;
@@ -22,8 +23,6 @@ const DateSetter = ({
   setAvailableTo,
 }: Props) => {
   return (
-    // className="flex justify-between gap-6 flex-col md:flex-row"
-    //className="w-full flex justify-between items-center gap-2"
     <div className="flex justify-between gap-6 flex-col ">
       {/* Available From */}
       <div className="w-full flex md:flex-col md:items-start lg:flex-row lg:items-center justify-between items-center gap-2">
@@ -47,12 +46,11 @@ const DateSetter = ({
           </PopoverTrigger>
 
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
+            <DatePicker
               selected={availableFrom}
-              onSelect={setAvailableFrom}
-              initialFocus
-              disabled={(date) => date < new Date()}
+              onChange={(date) => setAvailableFrom(date || undefined)}
+              inline
+              minDate={new Date()}
             />
           </PopoverContent>
         </Popover>
@@ -85,12 +83,12 @@ const DateSetter = ({
           </PopoverTrigger>
 
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
+            <DatePicker
+              className="bg-blue-300"
               selected={availableTo}
-              onSelect={setAvailableTo}
-              initialFocus
-              disabled={(date) => !availableFrom || date < availableFrom}
+              onChange={(date) => setAvailableTo(date || undefined)}
+              inline
+              minDate={availableFrom ?? new Date()}
             />
           </PopoverContent>
         </Popover>
