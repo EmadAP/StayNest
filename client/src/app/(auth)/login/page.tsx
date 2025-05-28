@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { LoginUser } from "@/lib/mutations";
 import { LoginData } from "@/lib/type";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -12,6 +13,7 @@ function Page() {
     username: "",
     password: "",
   });
+  const queryClient = useQueryClient();
   const { mutate: login, isPending, error } = LoginUser();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,6 +24,7 @@ function Page() {
     e.preventDefault();
     login(formData, {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
         router.push("/");
       },
     });

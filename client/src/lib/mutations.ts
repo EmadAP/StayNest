@@ -1,5 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { LoginData, SignupData } from "./type";
+import { toast } from "sonner";
 
 const deleteListing = async (id: string) => {
   const res = await fetch(`http://localhost:5000/listings/${id}`, {
@@ -12,6 +13,14 @@ const deleteListing = async (id: string) => {
 export const DeleteListingById = () => {
   return useMutation({
     mutationFn: deleteListing,
+    onSuccess: () => {
+      toast.success("Nest deleted successfully");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to delete the Nest", {
+        description: error.message,
+      });
+    },
   });
 };
 
@@ -38,6 +47,14 @@ export const UpdateListingById = () => {
   return useMutation({
     mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
       updateListing({ id, formData }),
+    onSuccess: () => {
+      toast.success("Nest updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to update the Nest", {
+        description: error.message,
+      });
+    },
   });
 };
 
@@ -57,6 +74,14 @@ const createListing = async (formData: FormData) => {
 export const CreateListings = () => {
   return useMutation({
     mutationFn: (formData: FormData) => createListing(formData),
+    onSuccess: () => {
+      toast.success("Nest created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to create the Nest", {
+        description: error.message,
+      });
+    },
   });
 };
 
@@ -78,7 +103,17 @@ const signupUser = async (userData: SignupData) => {
 };
 
 export const SignupUser = () => {
-  return useMutation({ mutationFn: signupUser });
+  return useMutation({
+    mutationFn: signupUser,
+    onSuccess: () => {
+      toast.success("Account created successfully. Welcome to StayNest!");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to create your Account. try again!", {
+        description: error.message,
+      });
+    },
+  });
 };
 
 const loginUser = async (userData: LoginData) => {
@@ -99,12 +134,18 @@ const loginUser = async (userData: LoginData) => {
 };
 
 export const LoginUser = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: loginUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Welcome back! You’ve successfully logged in.");
+    },
+    onError: (error: Error) => {
+      toast.error(
+        "Login failed! Please check your credentials and try again.",
+        {
+          description: error.message,
+        }
+      );
     },
   });
 };
@@ -121,12 +162,15 @@ const logoutUser = async () => {
 };
 
 export const LogoutUser = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: logoutUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("You’ve successfully logged out!");
+    },
+    onError: (error: Error) => {
+      toast.error("Logout failed!", {
+        description: error.message,
+      });
     },
   });
 };
