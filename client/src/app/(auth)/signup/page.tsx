@@ -4,27 +4,58 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SignupData } from "@/lib/type";
 import { SignupUser } from "@/lib/mutations";
+import { z } from "zod";
+
+const signupSchema = z.object({
+  username: z
+    .string()
+    .min(1, "Username is required")
+    .min(4, "username must be at least 4 characters"),
+  email: z
+    .string()
+    .email("Invalid email format")
+    .refine((val) => val.length >= 6 && !/^.{1}@.{1}\..{1}$/.test(val), {
+      message: "Invalid email address",
+    }),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(8, "Password must be at least 8 characters"),
+});
 
 function Page() {
   const router = useRouter();
-
+  const { mutate: signup, isPending, error, isSuccess } = SignupUser();
   const [formData, setFormData] = useState<SignupData>({
     username: "",
     email: "",
     password: "",
   });
-
-  const { mutate: signup, isPending, error, isSuccess } = SignupUser();
+  const [formError, setFormError] = useState<string | null>(null);
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormError(null);
+    setMutationError(null);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const result = signupSchema.safeParse(formData);
+
+    if (!result.success) {
+      const firstError = result.error.issues[0]?.message || "Invalid input";
+      setFormError(firstError);
+      return;
+    }
     signup(formData, {
       onSuccess: () => {
         router.push("/login");
+      },
+      onError: (error: Error) => {
+        setMutationError(error.message);
       },
     });
   };
@@ -72,8 +103,11 @@ function Page() {
       <Button className="text-lg text-white dark:text-white">
         {isPending ? "Signing up..." : "Sign Up"}
       </Button>
-      {error && <p className="text-red-500">{(error as Error).message}</p>}
-      {isSuccess && <p className="text-green-500">Signup successful!</p>}
+      <div className="pt-5">
+        {formError && <p className="text-red-500 mt-2">{formError}</p>}
+        {error && <p className="text-red-500 mt-2">{mutationError}</p>}
+        {isSuccess && <p className="text-green-500">Signup successful!</p>}
+      </div>
     </form>
   );
 }

@@ -39,8 +39,8 @@ function Page() {
       listing.title || "";
     (form.elements.namedItem("description") as HTMLTextAreaElement).value =
       listing.description || "";
-    (form.elements.namedItem("location") as HTMLInputElement).value =
-      listing.location || "";
+    (form.elements.namedItem("address") as HTMLInputElement).value =
+      listing.address || "";
 
     (form.elements.namedItem("pricePerNight") as HTMLInputElement).value =
       listing.pricePerNight?.toString() || "";
@@ -159,8 +159,8 @@ function Page() {
             value={coordinates ? JSON.stringify(coordinates) : ""}
           />
           <input
-            name="location"
-            placeholder="Location"
+            name="address"
+            placeholder="Address"
             required
             className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
           />

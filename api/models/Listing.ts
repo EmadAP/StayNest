@@ -7,10 +7,10 @@ export interface IListing extends Document {
   pricePerNight: number;
   availableFrom: Date;
   availableTo: Date;
-  location: string;
+  address: string;
   coordinates: [number, number];
   amenities?: string[];
-  maxGuests?: number;
+  maxGuests: number;
   houseRules?: string;
   owner: mongoose.Types.ObjectId;
   isActive: boolean;
@@ -24,7 +24,7 @@ const ListingSchema = new Schema<IListing>(
     pricePerNight: { type: Number, required: true },
     availableFrom: { type: Date, required: true },
     availableTo: { type: Date, required: true },
-    location: { type: String, required: true },
+    address: { type: String, required: true },
     coordinates: {
       type: [Number],
       required: true,
@@ -34,7 +34,7 @@ const ListingSchema = new Schema<IListing>(
       },
     },
     amenities: [{ type: String }],
-    maxGuests: { type: Number },
+    maxGuests: { type: Number, required: true },
     houseRules: { type: String },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
     isActive: { type: Boolean, default: true },

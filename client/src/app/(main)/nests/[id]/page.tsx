@@ -82,15 +82,15 @@ function Page() {
             <div className="space-y-2">
               <div className="flex flex-col">
                 <span className="font-semibold text-lg  text-zinc-900 dark:text-white">
-                  Location
+                  Address
                 </span>
                 <span className="text-zinc-700 dark:text-white text-sm mb-1">
-                  {listing.location}
+                  {listing.address}
                 </span>
               </div>
               <LocationViewer
                 coordinates={listing.coordinates}
-                locationName={listing.location}
+                locationName={listing.address}
               />
             </div>
 

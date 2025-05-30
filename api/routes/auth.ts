@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User, { IUser } from "../models/User";
 import { SECRET } from "../util/config";
+import * as EmailValidator from "email-validator";
 
 const router = Router();
 const salt = bcrypt.genSaltSync(10);
@@ -29,16 +30,34 @@ router.post(
   async (req: Request<{}, {}, SignupRequest>, res: Response) => {
     const { username, password, email } = req.body;
     try {
+      const existingUsername = await User.findOne({ username });
+      if (existingUsername) {
+        res.status(400).json({ message: "Username is already taken" });
+        return;
+      }
+
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        res.status(400).json({ message: "Email is already in use" });
+        return;
+      }
+
+      if (!EmailValidator.validate(email)) {
+        res.status(400).json({ message: "Invalid email format" });
+        return;
+      }
+
       const hashedPassword = bcrypt.hashSync(password, salt);
       const userDoc = await User.create({
         username,
         password: hashedPassword,
         email,
       });
+
       res.status(201).json({ id: userDoc._id, username: userDoc.username });
     } catch (err) {
       console.log(err);
-      res.status(400).json({ message: "Signup failed", error: err });
+      res.status(500).json({ message: "Signup failed", error: err });
     }
   }
 );
@@ -50,12 +69,12 @@ router.post(
     try {
       const userDoc = await User.findOne({ username });
       if (!userDoc) {
-        res.status(400).json({ message: "Wrong credentials" });
+        res.status(400).json({ message: "Username is wrong" });
         return;
       }
       const passOk = bcrypt.compareSync(password, userDoc.password);
       if (!passOk) {
-        res.status(400).json({ message: "Wrong credentials" });
+        res.status(400).json({ message: "Password is wrong" });
         return;
       }
 
@@ -71,7 +90,10 @@ router.post(
       });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: "Login failed", error: err });
+      res.status(500).json({
+        message: "Login failed. Please check your username and password.",
+        error: err,
+      });
     }
   }
 );

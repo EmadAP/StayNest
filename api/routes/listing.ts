@@ -18,10 +18,10 @@ interface ListingInput {
   pricePerNight: number;
   availableFrom: string;
   availableTo: string;
-  location: string;
+  address: string;
   coordinates: [number, number];
   amenities?: string[];
-  maxGuests?: number;
+  maxGuests: number;
   houseRules?: string;
   isActive?: boolean;
 }
@@ -34,7 +34,7 @@ function isListingInput(obj: any): obj is ListingInput {
       !isNaN(Number(obj.pricePerNight))) &&
     typeof obj.availableFrom === "string" &&
     typeof obj.availableTo === "string" &&
-    typeof obj.location === "string" &&
+    typeof obj.address === "string" &&
     Array.isArray(obj.coordinates) &&
     obj.coordinates.length === 2 &&
     !isNaN(Number(obj.coordinates[0])) &&
@@ -95,25 +95,73 @@ router.post(
         pricePerNight: Number(body.pricePerNight),
         availableFrom: body.availableFrom,
         availableTo: body.availableTo,
-        location: body.location,
+        address: body.address,
         coordinates: parsedCoordinates,
         amenities: Array.isArray(body.amenities)
           ? body.amenities.map(String)
           : typeof body.amenities === "string"
           ? (body.amenities as string).split(",").map((s: string) => s.trim())
           : [],
-        maxGuests: body.maxGuests ? Number(body.maxGuests) : undefined,
+        maxGuests: Number(body.maxGuests),
         houseRules: body.houseRules ? String(body.houseRules) : undefined,
         isActive: body.isActive !== undefined ? Boolean(body.isActive) : true,
       };
 
-      if (
-        !listingData.title ||
-        !listingData.description ||
-        !listingData.pricePerNight ||
-        !listingData.location
-      ) {
-        res.status(400).json({ message: "Missing required fields" });
+      if (!listingData.title) {
+        res
+          .status(400)
+          .json({ message: "Your Nest needs a title to be listed." });
+        return;
+      }
+
+      if (!listingData.description) {
+        res.status(400).json({
+          message:
+            "Please provide a description to help guests understand your Nest.",
+        });
+        return;
+      }
+
+      if (!listingData.pricePerNight) {
+        res
+          .status(400)
+          .json({ message: "Set a price per night for your Nest." });
+        return;
+      }
+
+      if (!listingData.maxGuests) {
+        res
+          .status(400)
+          .json({ message: "Set a maximum Guests for your Nest." });
+        return;
+      }
+
+      if (!listingData.address) {
+        res
+          .status(400)
+          .json({ message: "Please provide the address of your Nest." });
+        return;
+      }
+
+      if (!listingData.availableFrom) {
+        res
+          .status(400)
+          .json({ message: "Specify when your Nest will be available from." });
+        return;
+      }
+
+      if (!listingData.availableTo) {
+        res.status(400).json({
+          message: "Specify when your Nest will no longer be available.",
+        });
+        return;
+      }
+
+      if (!listingData.coordinates) {
+        res.status(400).json({
+          message:
+            "Location coordinates are missing. Please select a location on the map.",
+        });
         return;
       }
 
@@ -205,7 +253,7 @@ router.put(
           : undefined,
         availableFrom: body.availableFrom,
         availableTo: body.availableTo,
-        location: body.location,
+        address: body.address,
         coordinates: body.coordinates,
         amenities: Array.isArray(body.amenities)
           ? body.amenities.map(String)

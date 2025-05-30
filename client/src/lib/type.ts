@@ -5,7 +5,7 @@ export interface Listing {
   pricePerNight: number;
   availableFrom: string;
   availableTo: string;
-  location: string;
+  address: string;
   coordinates: [number, number];
   amenities: string[];
   maxGuests: number;

@@ -13,6 +13,34 @@ import DateSetter from "@/components/DateSetter";
 import SetAmenities from "@/components/SetAmenities";
 import { X } from "lucide-react";
 import { CreateListings } from "@/lib/mutations";
+import { z } from "zod";
+
+const createNestSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Your Nest needs a title to be listed.")
+    .max(100, "Title is too long"),
+  description: z
+    .string()
+    .min(1, "Please provide a description to help guests understand your Nest.")
+    .max(400, "Description is too long"),
+  address: z.string().min(1, "Please provide the address of your Nest."),
+  pricePerNight: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Set a price per night for your Nest.",
+    }),
+  maxGuests: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 1, {
+      message: "Set a maximum Guests for your Nest.",
+    }),
+  coordinates: z.string().refine((val) => !!val && val.startsWith("["), {
+    message:
+      "Location coordinates are missing. Please select a location on the map.",
+  }),
+  houseRules: z.string().optional(),
+});
 
 function Page() {
   const router = useRouter();
@@ -24,6 +52,8 @@ function Page() {
     new Date()
   );
   const [availableTo, setAvailableTo] = useState<Date | undefined>(undefined);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [mutationError, setMutationError] = useState<string | null>(null);
   const createMutation = CreateListings();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,6 +61,27 @@ function Page() {
     if (!formRef.current) return;
 
     const formData = new FormData(formRef.current);
+
+    const rawData = {
+      title: formData.get("title") as string,
+      description: formData.get("description") as string,
+      address: formData.get("address") as string,
+      pricePerNight: formData.get("pricePerNight") as string,
+      maxGuests: formData.get("maxGuests") as string,
+      coordinates: formData.get("coordinates") as string,
+      houseRules: formData.get("houseRules") as string,
+    };
+
+    const result = createNestSchema.safeParse(rawData);
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        fieldErrors[issue.path[0] as string] = issue.message;
+      }
+      setFormErrors(fieldErrors);
+      return;
+    }
 
     formData.delete("files");
 
@@ -43,10 +94,27 @@ function Page() {
         console.log("Listing created:", data);
         router.push("/");
       },
+      onError: (error: Error) => {
+        setMutationError(error.message);
+      },
     });
   };
 
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name } = e.target;
+    setFormErrors((prev) => {
+      const updatedErrors = { ...prev };
+      delete updatedErrors[name];
+      return updatedErrors;
+    });
+    setMutationError(null);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormErrors({});
+    setMutationError(null);
     const files = e.target.files;
     if (!files) return;
 
@@ -79,50 +147,82 @@ function Page() {
         >
           <input
             name="title"
+            onChange={handleInputChange}
             placeholder="Title"
             className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
-            required
           />
+          {formErrors.title && (
+            <p className="text-red-500 mt-1 text-sm">{formErrors.title}</p>
+          )}
           <textarea
             name="description"
+            onChange={handleInputChange}
             placeholder="Description"
             className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
-            required
           />
+          {formErrors.description && (
+            <p className="text-red-500 mt-1 text-sm">
+              {formErrors.description}
+            </p>
+          )}
           <LocationPicker onLocationSelect={setCoordinates} />
           <input
             type="hidden"
+            onChange={handleInputChange}
             name="coordinates"
             value={coordinates ? JSON.stringify(coordinates) : ""}
           />
+          {formErrors.coordinates && (
+            <p className="text-red-500 mt-1 text-sm">
+              {formErrors.coordinates}
+            </p>
+          )}
           <input
-            name="location"
-            placeholder="Location"
-            required
+            name="address"
+            onChange={handleInputChange}
+            placeholder="Address"
             className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
           />
+          {formErrors.address && (
+            <p className="text-red-500 mt-1 text-sm">{formErrors.address}</p>
+          )}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-8 ">
             <div className="flex justify-between gap-6 flex-col ">
-              <div className="w-full flex md:flex-col md:items-start lg:flex-row lg:items-center justify-between items-center gap-2">
-                <span className="text-lg font-semibold ">
-                  Price Per Night :
-                </span>
-                <input
-                  name="pricePerNight"
-                  type="number"
-                  placeholder="$"
-                  className="w-[200px] bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-1.5 outline-none rounded-lg "
-                  required
-                />
+              <div className="w-full flex-col md:flex-col  gap-4">
+                <div className="w-full flex md:flex-col md:items-start lg:flex-row lg:items-center justify-between items-center gap-2">
+                  <span className="text-lg font-semibold ">
+                    Price Per Night :
+                  </span>
+                  <input
+                    name="pricePerNight"
+                    onChange={handleInputChange}
+                    type="number"
+                    placeholder="$"
+                    className="w-[200px] bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-1.5 outline-none rounded-lg "
+                  />
+                </div>
+                {formErrors.pricePerNight && (
+                  <p className="text-red-500 mt-1 text-sm">
+                    {formErrors.pricePerNight}
+                  </p>
+                )}
               </div>
-              <div className="w-full flex md:flex-col md:items-start lg:flex-row lg:items-center justify-between items-center gap-2">
-                <span className="text-lg font-semibold ">Max Guests :</span>
-                <input
-                  name="maxGuests"
-                  type="number"
-                  placeholder="Guests"
-                  className="w-[200px] bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-1.5 outline-none rounded-lg "
-                />
+              <div className="w-full flex-col md:flex-col  gap-4">
+                <div className="w-full flex md:flex-col md:items-start lg:flex-row lg:items-center justify-between items-center gap-2">
+                  <span className="text-lg font-semibold ">Max Guests :</span>
+                  <input
+                    name="maxGuests"
+                    onChange={handleInputChange}
+                    type="number"
+                    placeholder="Guests"
+                    className="w-[200px] bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-1.5 outline-none rounded-lg "
+                  />
+                </div>
+                {formErrors.maxGuests && (
+                  <p className="text-red-500 mt-1 text-sm">
+                    {formErrors.maxGuests}
+                  </p>
+                )}
               </div>
               <DateSetter
                 availableFrom={availableFrom}
@@ -136,9 +236,13 @@ function Page() {
           </div>
           <textarea
             name="houseRules"
+            onChange={handleInputChange}
             placeholder="House Rules"
             className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
           />
+          {formErrors.houseRules && (
+            <p className="text-red-500 mt-1 text-sm">{formErrors.houseRules}</p>
+          )}
 
           {/* MULTI IMAGE UPLOAD */}
           <input
@@ -187,6 +291,11 @@ function Page() {
           >
             {createMutation.isPending ? "Submitting..." : "Create your Nest"}
           </Button>
+          <div>
+            {createMutation.error && (
+              <p className="text-red-500 mt-2">{mutationError}</p>
+            )}
+          </div>
         </form>
       </MaxWidthWrapper>
     </div>
