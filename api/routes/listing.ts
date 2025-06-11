@@ -24,6 +24,8 @@ interface ListingInput {
   maxGuests: number;
   houseRules?: string;
   isActive?: boolean;
+  propertyType: string;
+  country: string;
 }
 
 function isListingInput(obj: any): obj is ListingInput {
@@ -38,7 +40,9 @@ function isListingInput(obj: any): obj is ListingInput {
     Array.isArray(obj.coordinates) &&
     obj.coordinates.length === 2 &&
     !isNaN(Number(obj.coordinates[0])) &&
-    !isNaN(Number(obj.coordinates[1]))
+    !isNaN(Number(obj.coordinates[1])) &&
+    typeof obj.propertyType === "string" &&
+    typeof obj.country === "string"
   );
 }
 
@@ -105,6 +109,8 @@ router.post(
         maxGuests: Number(body.maxGuests),
         houseRules: body.houseRules ? String(body.houseRules) : undefined,
         isActive: body.isActive !== undefined ? Boolean(body.isActive) : true,
+        propertyType: body.propertyType,
+        country: body.country,
       };
 
       if (!listingData.title) {
@@ -162,6 +168,20 @@ router.post(
           message:
             "Location coordinates are missing. Please select a location on the map.",
         });
+        return;
+      }
+
+      if (!listingData.propertyType) {
+        res
+          .status(400)
+          .json({ message: "Your Nest needs a Property Type to be listed." });
+        return;
+      }
+
+      if (!listingData.country) {
+        res
+          .status(400)
+          .json({ message: "Chose the country your property is located at." });
         return;
       }
 
@@ -264,6 +284,8 @@ router.put(
         houseRules: body.houseRules ? String(body.houseRules) : undefined,
         isActive:
           body.isActive !== undefined ? Boolean(body.isActive) : undefined,
+        propertyType: body.propertyType,
+        country: body.country,
       };
 
       Object.keys(updatedData).forEach((key) => {
@@ -298,9 +320,17 @@ router.get("/listings", async (req: Request, res: Response) => {
 });
 
 router.get("/listings/:id", async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const listingDoc = await Listing.findById(id);
-  res.json(listingDoc);
+  try {
+    const { id } = req.params;
+    const listingDoc = await Listing.findById(id);
+    if (!listingDoc) {
+      res.status(404).json({ message: "Not found" });
+      return;
+    }
+    res.json(listingDoc);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch listing" });
+  }
 });
 
 router.get("/my-listings", verifyToken, async (req: Request, res: Response) => {

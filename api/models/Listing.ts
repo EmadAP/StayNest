@@ -13,6 +13,8 @@ export interface IListing extends Document {
   maxGuests: number;
   houseRules?: string;
   owner: mongoose.Types.ObjectId;
+  propertyType: "house" | "apartment" | "room";
+  country: string;
   isActive: boolean;
 }
 
@@ -37,6 +39,12 @@ const ListingSchema = new Schema<IListing>(
     maxGuests: { type: Number, required: true },
     houseRules: { type: String },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    propertyType: {
+      type: String,
+      enum: ["house", "apartment", "room"],
+      required: true,
+    },
+    country: { type: String, required: true },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

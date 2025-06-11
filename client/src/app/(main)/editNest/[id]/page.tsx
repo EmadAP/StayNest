@@ -7,10 +7,13 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import { House, Landmark, DoorOpen } from "lucide-react";
 import Loading from "@/components/Loading";
 import { X } from "lucide-react";
 import { GetListingById } from "@/lib/queries";
 import { UpdateListingById } from "@/lib/mutations";
+import CountrySelect from "../../nestYourHouse/CountrySelect";
+import { cn } from "@/lib/utils";
 const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
   ssr: false,
 });
@@ -27,6 +30,8 @@ function Page() {
   const [availableFrom, setAvailableFrom] = useState<Date>();
   const [availableTo, setAvailableTo] = useState<Date>();
   const [removedImages, setRemovedImages] = useState<string[]>([]);
+  const [country, setCountry] = useState<string>("");
+  const [propertyType, setPropertyType] = useState<string>("");
   const { data: listing, isLoading } = GetListingById(id);
   const updateMutation = UpdateListingById();
 
@@ -52,6 +57,8 @@ function Page() {
     setCoordinates(listing.coordinates || null);
     setAvailableFrom(new Date(listing.availableFrom));
     setAvailableTo(new Date(listing.availableTo));
+    setCountry(listing.country || "");
+    setPropertyType(listing.propertyType || "");
 
     if (listing.images?.length) {
       setImagePreviews(
@@ -202,6 +209,32 @@ function Page() {
             placeholder="House Rules"
             className="bg-white dark:bg-gray-800 border-1 border-green-600 px-2 py-2 outline-none rounded-lg "
           />
+
+          <input type="hidden" name="country" value={country} />
+          <input type="hidden" name="propertyType" value={propertyType} />
+          <div className="grid md:grid-cols-2 gap-4">
+            <CountrySelect defaultValue={country} onSelect={setCountry} />
+
+            <div className="flex gap-4">
+              {["house", "apartment", "room"].map((type) => (
+                <div
+                  key={type}
+                  onClick={() => setPropertyType(type)}
+                  className={cn(
+                    "flex flex-col w-32 border-2 rounded-lg p-4 gap-2 cursor-pointer transition-transform duration-300 hover:scale-105",
+                    propertyType === type
+                      ? "border-green-600 bg-green-100 dark:bg-green-900"
+                      : "border-gray-300 dark:border-white"
+                  )}
+                >
+                  {type === "house" && <House size={24} />}
+                  {type === "apartment" && <Landmark size={24} />}
+                  {type === "room" && <DoorOpen size={24} />}
+                  <p className="text-center capitalize">{type}</p>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* MULTI IMAGE UPLOAD */}
           <input

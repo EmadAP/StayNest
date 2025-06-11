@@ -3,7 +3,7 @@
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useRef, useState } from "react";
 import dynamic from "next/dynamic";
 const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
@@ -44,6 +44,9 @@ const createNestSchema = z.object({
 
 function Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const propertyType = searchParams.get("propertyType");
+  const country = searchParams.get("country");
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -186,6 +189,8 @@ function Page() {
           {formErrors.address && (
             <p className="text-red-500 mt-1 text-sm">{formErrors.address}</p>
           )}
+          <input type="hidden" name="country" value={country || ""} />
+          <input type="hidden" name="propertyType" value={propertyType || ""} />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-8 ">
             <div className="flex justify-between gap-6 flex-col ">
               <div className="w-full flex-col md:flex-col  gap-4">

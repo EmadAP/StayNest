@@ -12,6 +12,8 @@ export interface Listing {
   houseRules: string;
   images: string[];
   owner: string;
+  propertyType: "house" | "apartment" | "room";
+  country: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -41,3 +43,14 @@ export type LoginData = {
   username: string;
   password: string;
 };
+
+export type Testimonial = {
+  name: string;
+  image: string;
+  message: string;
+};
+
+// export interface DraftData {
+//   propertyType: "house" | "apartment" | "room";
+//   country: string;
+// }

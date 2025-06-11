@@ -52,7 +52,7 @@ function Navbar() {
           </div>
           <div className="flex-1/4 flex items-center gap-2.5 justify-end">
             <Link
-              href="/createNest"
+              href="/nestYourHouse"
               className={buttonVariants({ size: "sm", variant: "ghost" })}
             >
               Nest your House

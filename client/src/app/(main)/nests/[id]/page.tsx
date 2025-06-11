@@ -24,6 +24,7 @@ import { Trash, UserPen } from "lucide-react";
 import Link from "next/link";
 import { GetListingById } from "@/lib/queries";
 import { DeleteListingById } from "@/lib/mutations";
+import { COUNTRIES } from "@/lib/mock";
 const LocationViewer = dynamic(() => import("@/components/LocationViewer"), {
   ssr: false,
 });
@@ -38,6 +39,10 @@ function Page() {
   const fromProfile = searchParams.get("from") === "profile";
   const { data: listing, isLoading, isError, error } = GetListingById(id);
   const deleteMutation = DeleteListingById();
+
+  const countryLabel =
+    COUNTRIES.find((c) => c.value === listing?.country)?.label ||
+    listing?.country;
 
   const handleDelete = (id: string) => {
     deleteMutation.mutate(id, {
@@ -79,6 +84,14 @@ function Page() {
             <p className=" text-sm text-zinc-700 dark:text-white">
               {listing.description}
             </p>
+            <div className="flex flex-col">
+              <span className="font-semibold text-lg text-zinc-900 dark:text-white">
+                Country property located at
+              </span>
+              <span className="text-zinc-700 dark:text-white text-sm mb-1 pb-1 border-b-1 border-b-green-500">
+                {countryLabel}
+              </span>
+            </div>
             <div className="space-y-2">
               <div className="flex flex-col">
                 <span className="font-semibold text-lg  text-zinc-900 dark:text-white">
@@ -119,6 +132,15 @@ function Page() {
               </span>
               <span className="text-zinc-700 dark:text-white text-sm mb-1 pb-1 border-b-1 border-b-green-500">
                 {listing.maxGuests}
+              </span>
+            </div>
+
+            <div className="flex flex-col">
+              <span className="font-semibold text-lg text-zinc-900 dark:text-white">
+                Property Type
+              </span>
+              <span className="text-zinc-700 dark:text-white text-sm mb-1 pb-1 border-b-1 border-b-green-500">
+                {listing.propertyType}
               </span>
             </div>
 
