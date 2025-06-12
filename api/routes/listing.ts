@@ -311,7 +311,7 @@ router.put(
 
 router.get("/listings", async (req: Request, res: Response) => {
   try {
-    const listings = await Listing.find().sort({ createdAt: -1 }).limit(20);
+    const listings = await Listing.find().sort({ createdAt: -1 }).limit(30);
     res.json(listings);
   } catch (err) {
     console.error(err);
@@ -386,5 +386,29 @@ router.delete(
     }
   }
 );
+
+router.get("/filtered-listings", async (req: Request, res: Response) => {
+  try {
+    const { propertyType, country } = req.query;
+
+    const filter: any = {};
+
+    if (propertyType) {
+      filter.propertyType = propertyType;
+    }
+
+    if (country) {
+      filter.country = country;
+    }
+
+    const listings = await Listing.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(20);
+    res.json(listings);
+  } catch (err) {
+    console.error("Error fetching filtered listings:", err);
+    res.status(500).json({ message: "Failed to fetch filtered listings" });
+  }
+});
 
 export default router;
