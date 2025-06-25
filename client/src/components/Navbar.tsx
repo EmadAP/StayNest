@@ -101,7 +101,7 @@ function Navbar() {
                     </>
                   )}
                   <DropdownMenuItem>
-                    <Link href="/#" className="w-full cursor-pointer">
+                    <Link href="/contact" className="w-full cursor-pointer">
                       Contact us
                     </Link>
                   </DropdownMenuItem>
